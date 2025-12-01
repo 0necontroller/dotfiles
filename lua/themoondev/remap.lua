@@ -23,6 +23,16 @@ keymap("n", "<leader>c", ":bdelete<CR>", opts)
 
 -- Open local diagnostics
 keymap("n", "<leader>dd", ":lua vim.diagnostic.open_float(0, {scope='line'}) <CR>", opts)
+-- Yank current line diagnostic
+keymap("n", "<leader>dy", function()
+  local diags = vim.diagnostic.get(0, { lnum = vim.api.nvim_win_get_cursor(0)[1]-1 })
+  if not vim.tbl_isempty(diags) then
+    local messages = vim.tbl_map(function(d) return d.message:gsub("\n", " ") end, diags)
+    local text = table.concat(messages, " | ")
+    vim.fn.setreg('+', text)
+    print("Yanked diagnostic: " .. text)
+  end
+end, opts)
 
 -- Writting a file
 keymap("n", "<leader>w", ":w<CR>", opts)
