@@ -1,86 +1,98 @@
-local lsp = require("lsp-zero")
+-- =========================
+-- Mason setup
+-- =========================
+require("mason").setup()
 
-lsp.preset("recommended")
-
-
-lsp.ensure_installed({
-	'rust_analyzer',
-	"cssls",
-    "clangd",
-	"html",
-	"ts_ls",
-	"pyright",
-    "dockerls",
-	"bashls",
-	"jsonls",
-	"yamlls",
-	"gopls",
-	"rust_analyzer",
-	"tailwindcss",
-	"lua_ls",
-    "wgsl_analyzer",
-    "taplo"
+require("mason-lspconfig").setup({
+    ensure_installed = {
+        "lua_ls",
+        "gopls",
+        "pyright",
+        "rust_analyzer",
+        "clangd",
+        "html",
+        "cssls",
+        "ts_ls",
+        "jsonls",
+        "yamlls",
+        "bashls",
+        "dockerls",
+        "tailwindcss",
+        "taplo",
+    }
 })
 
--- Fix Undefined global 'vim'
-lsp.nvim_workspace()
+-- =========================
+-- CMP (completion)
+-- =========================
+local cmp = require("cmp")
+local cmp_lsp = require("cmp_nvim_lsp")
 
+local capabilities = cmp_lsp.default_capabilities()
 
-local cmp = require('cmp')
-local cmp_select = {behavior = cmp.SelectBehavior.Select}
-local cmp_mappings = lsp.defaults.cmp_mappings({
-  ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
-  ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
-  ['<C-y>'] = cmp.mapping.confirm({ select = true }),
-  ["<C-Space>"] = cmp.mapping.complete(),
+cmp.setup({
+    mapping = {
+        ["<C-p>"] = cmp.mapping.select_prev_item(),
+        ["<C-n>"] = cmp.mapping.select_next_item(),
+        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
+        ["<C-Space>"] = cmp.mapping.complete(),
+    },
+    sources = {
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
+        { name = "buffer" },
+        { name = "path" },
+    },
 })
 
-cmp_mappings['<Tab>'] = nil
-cmp_mappings['<S-Tab>'] = nil
+-- =========================
+-- LSP keymaps (shared on_attach)
+-- =========================
+local on_attach = function(_, bufnr)
+    local opts = { buffer = bufnr }
 
-lsp.setup_nvim_cmp({
-  mapping = cmp_mappings
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+    vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+    vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
+    vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
+    vim.keymap.set("n", "[d", vim.diagnostic.goto_next, opts)
+    vim.keymap.set("n", "]d", vim.diagnostic.goto_prev, opts)
+    vim.keymap.set("n", "<leader>vca", vim.lsp.buf.code_action, opts)
+    vim.keymap.set("n", "<leader>vrr", vim.lsp.buf.references, opts)
+    vim.keymap.set("n", "<leader>vrn", vim.lsp.buf.rename, opts)
+    vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+end
+
+-- =========================
+-- Global LSP defaults (Neovim 0.11 way)
+-- =========================
+vim.lsp.config("*", {
+    capabilities = capabilities,
+    on_attach = on_attach,
 })
 
-lsp.set_preferences({
-	suggest_lsp_servers = false,
-	sign_icons = {
-		error = '✘',
-		warn = '▲',
-		hint = '⚑',
-		info = '»',
-	}
-})
-
-lsp.on_attach(function(client, bufnr)
-  local opts = {buffer = bufnr, remap = false}
-
-  vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
-  vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
-  vim.keymap.set("n", "<leader>vws", function() vim.lsp.buf.workspace_symbol() end, opts)
-  vim.keymap.set("n", "<leader>vd", function() vim.diagnostic.open_float() end, opts)
-  vim.keymap.set("n", "[d", function() vim.diagnostic.goto_next() end, opts)
-  vim.keymap.set("n", "]d", function() vim.diagnostic.goto_prev() end, opts)
-  vim.keymap.set("n", "<leader>vca", function() vim.lsp.buf.code_action() end, opts)
-  vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
-  vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end, opts)
-  vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
-end)
-
--- Formatting
-lsp.format_mapping('<leader>8', {
-  format_opts = {
-    async = false,
-    timeout_ms = 10000,
-  },
-  servers = {
-   ['null-ls'] = {"javascript","typescript","typescriptreact","css","html","json","yaml","python","lua","rust","go","bash","markdown"}
-  }
-})
-
-
-lsp.setup()
-
+-- Optional diagnostics tuning
 vim.diagnostic.config({
-    virtual_text = true
+    virtual_text = true,
+    signs = true,
+    update_in_insert = false,
+    severity_sort = true,
+})
+
+-- Enable LSP servers explicitly
+vim.lsp.enable({
+    "lua_ls",
+    "gopls",
+    "pyright",
+    "rust_analyzer",
+    "clangd",
+    "html",
+    "cssls",
+    "ts_ls",
+    "jsonls",
+    "yamlls",
+    "bashls",
+    "dockerls",
+    "tailwindcss",
+    "taplo",
 })
