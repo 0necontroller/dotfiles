@@ -23,6 +23,7 @@ keymap("n", "<leader>c", ":bdelete<CR>", opts)
 
 -- Open local diagnostics
 keymap("n", "<leader>dd", ":lua vim.diagnostic.open_float(0, {scope='line'}) <CR>", opts)
+
 -- Yank current line diagnostic
 keymap("n", "<leader>dy", function()
   local diags = vim.diagnostic.get(0, { lnum = vim.api.nvim_win_get_cursor(0)[1]-1 })
@@ -36,6 +37,9 @@ end, opts)
 
 -- Writting a file
 keymap("n", "<leader>w", ":w<CR>", opts)
+
+-- Open vertical terminal on the right
+keymap("n", "<leader>t", ":vsplit term://zsh<CR>", opts)
 
 -- Move text up and down
 keymap("n", "<A-j>", ":m .+1<CR>==", opts)
